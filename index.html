@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>Lisp.coffee REPL</title>
+    <script src="lisp.js"></script>
+    <script>
+        function send(){
+            if(event.keyCode == 13){
+                command = document.getElementById('command').value
+                result = repl(command)
+                document.getElementById('result').innerHTML = result
+            }
+        }
+    </script>
+  </head>
+  <body>
+    <input id="command" onkeypress="send()" />
+    <div id="result"></div>
+  </body>
+</html>
