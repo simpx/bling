@@ -63,7 +63,12 @@
     <script src="javascripts/lisp.js"></script>
     <script>
       $(function () {
-        var jqconsole = $('#console').jqconsole('Hi\n', '>>>');
+        var welcome = "sample code:\n\
+>>> (+ 1 1) \n\
+>>> (define one 1)\n\
+>>> (lambda (x) (* x 2))\n\
+>>> (define double (lambda (x) (* x 2)))\n"
+        var jqconsole = $('#console').jqconsole(welcome, '>>> ');
         var startPrompt = function () {
           // Start the prompt with history enabled.
           jqconsole.Prompt(true, function (input) {
@@ -81,11 +86,6 @@
         startPrompt();
       });
     </script>
-    <center><div id="console"></div></center>
-<pre><code>>>>(+ 1 1)
->>>(define one 1)
->>>(lambda (x) (* x 2))
->>>(define double (lambda (x) (* x 2)))
-</code></pre>
+<div id="console"></div>
   </body>
 </html>
