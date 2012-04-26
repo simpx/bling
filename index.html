@@ -1,19 +1,91 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <title>Lisp.coffee REPL</title>
+    <style>
+    html, body {
+      background-color: #333;
+      color: white;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+    }
+    /* The console container element */
+    #console {
+      position: absolute;
+      width: 400px;
+      height: 500px;
+      background-color:black;
+    }
+    /* The inner console element. */
+    .jqconsole {
+        padding: 10px;
+    }
+    /* The cursor. */
+    .jqconsole-cursor {
+        background-color: gray;
+    }
+    /* The cursor color when the console looses focus. */
+    .jqconsole-blurred .jqconsole-cursor {
+        background-color: #666;
+    }
+    /* The current prompt text color */
+    .jqconsole-prompt {
+        color: #0d0;
+    }
+    /* The command history */
+    .jqconsole-old-prompt {
+        color: #0b0;
+        font-weight: normal;
+    }
+    /* The text color when in input mode. */
+    .jqconsole-input {
+        color: #dd0;
+    }
+    /* Previously entered input. */
+    .jqconsole-old-input {
+        color: #bb0;
+        font-weight: normal;
+    }
+    /* The text color of the output. */
+    .jqconsole-output {
+        color: white;
+    }
+    </style>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Bling : bling bling" />
+    <title>Bling</title>
+  </head>
+
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="jqconsole-2.7.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="lisp.js"></script>
     <script>
-        function send(){
-            if(event.keyCode == 13){
-                command = document.getElementById('command').value
-                result = repl(command)
-                document.getElementById('result').innerHTML = result
-            }
-        }
+      $(function () {
+        var welcome = "sample code:\n\
+>>> (+ 1 1) \n\
+>>> (define one 1)\n\
+>>> (lambda (x) (* x 2))\n\
+>>> (define double (lambda (x) (* x 2)))\n"
+        var jqconsole = $('#console').jqconsole(welcome, '>>> ');
+        var startPrompt = function () {
+          // Start the prompt with history enabled.
+          jqconsole.Prompt(true, function (input) {
+            // Output input with the class jqconsole-output.
+
+            try {
+            jqconsole.Write(repl(input) + '\n', 'jqconsole-output');
+            } catch (e){
+            jqconsole.Write('ERROR: ' + e + '\n');
+          }
+            // Restart the prompt.
+            startPrompt();
+          });
+        };
+        startPrompt();
+      });
     </script>
-  </head>
-  <body>
-    <input id="command" onkeypress="send()" />
-    <div id="result"></div>
+<div id="console"></div>
   </body>
 </html>

@@ -1,18 +1,20 @@
 Operations =
     '#t':   true
     '#f':   false
-    '+':    (a, b) -> a + b
-    '-':    (a, b) -> a - b
-    '*':    (a, b) -> a * b
-    '/':    (a, b) -> a / b
-    '<':    (a, b) -> a < b
-    '>':    (a, b) -> a > b
-    '<=':   (a, b) -> a <= b
-    '>=':   (a, b) -> a >= b
-    '=':    (a, b) -> a == b
-    'atom': (a)    -> if a instanceof Array then [] else '#t'
-    'car':  (a)    -> a[0]
-    'cdr':  (a)    -> a.slice(1)
+    '+':    (x, y) -> x + y
+    '-':    (x, y) -> x - y
+    '*':    (x, y) -> x * y
+    '/':    (x, y) -> x / y
+    '<':    (x, y) -> x < y
+    '>':    (x, y) -> x > y
+    '<=':   (x, y) -> x <= y
+    '>=':   (x, y) -> x >= y
+    '=':    (x, y) -> x == y
+    'atom': (x)    -> if (x instanceof Array && a.length > 0) then [] else '#t'
+    'eq':   (x, y) -> x == y
+    'car':  (x)    -> x[0]
+    'cdr':  (x)    -> x.slice(1)
+    'cons': (x, y) -> [x].concat(y)
 
 Symbol = 'string'
 class Env
@@ -47,6 +49,10 @@ eva = (x, env=global_env) ->
             eva(conseq, env)
         else
             eva(alt, env)
+    else if x[0] == 'cond'
+        for [test, conseq] in x.slice(1)
+            if eva(test, env)
+                return eva(conseq, env)
     else if x[0] == 'set!'
         [_, key, exp] = x
         env.find(key).set(key, eva(exp, env))
@@ -71,7 +77,7 @@ read = (s) ->
 parse = read
 
 tokenize = (string) ->
-    string.replace(/('?\()/g,' $1 ').replace(/\)/g,' ) ').replace(/\n/g, '').replace.split(" ").filter((s) -> s != "")
+    string.replace(/('?\()/g,' $1 ').replace(/\)/g,' ) ').replace(/\n/g, '').split(" ").filter((s) -> s != "")
 
 read_from = (tokens) ->
     if tokens.length == 0
@@ -99,9 +105,11 @@ atom = (token) ->
 
 to_string = (exp) -> 
     if exp instanceof Array
-        "( " + exp.map(to_string).join(" ") + " )"
-    else if typeof exp == 'undefined' or exp == null
-        "null"
+        "(" + exp.map(to_string).join(" ") + ")"
+    else if typeof exp == 'undefined'
+        ''
+    else if exp == null
+        null
     else
         exp.toString()
 

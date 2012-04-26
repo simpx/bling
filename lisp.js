@@ -4,45 +4,51 @@
   Operations = {
     '#t': true,
     '#f': false,
-    '+': function(a, b) {
-      return a + b;
+    '+': function(x, y) {
+      return x + y;
     },
-    '-': function(a, b) {
-      return a - b;
+    '-': function(x, y) {
+      return x - y;
     },
-    '*': function(a, b) {
-      return a * b;
+    '*': function(x, y) {
+      return x * y;
     },
-    '/': function(a, b) {
-      return a / b;
+    '/': function(x, y) {
+      return x / y;
     },
-    '<': function(a, b) {
-      return a < b;
+    '<': function(x, y) {
+      return x < y;
     },
-    '>': function(a, b) {
-      return a > b;
+    '>': function(x, y) {
+      return x > y;
     },
-    '<=': function(a, b) {
-      return a <= b;
+    '<=': function(x, y) {
+      return x <= y;
     },
-    '>=': function(a, b) {
-      return a >= b;
+    '>=': function(x, y) {
+      return x >= y;
     },
-    '=': function(a, b) {
-      return a === b;
+    '=': function(x, y) {
+      return x === y;
     },
-    'atom': function(a) {
-      if (a instanceof Array) {
+    'atom': function(x) {
+      if (x instanceof Array && a.length > 0) {
         return [];
       } else {
         return '#t';
       }
     },
-    'car': function(a) {
-      return a[0];
+    'eq': function(x, y) {
+      return x === y;
     },
-    'cdr': function(a) {
-      return a.slice(1);
+    'car': function(x) {
+      return x[0];
+    },
+    'cdr': function(x) {
+      return x.slice(1);
+    },
+    'cons': function(x, y) {
+      return [x].concat(y);
     }
   };
 
@@ -84,7 +90,7 @@
   global_env = new Env(Operations);
 
   eva = function(x, env) {
-    var alt, conseq, exp, exps, key, keys, proc, test, _;
+    var alt, conseq, exp, exps, key, keys, proc, test, _, _i, _len, _ref, _ref2;
     if (env == null) env = global_env;
     if (typeof x === Symbol) {
       return env.get(x);
@@ -99,6 +105,12 @@
         return eva(conseq, env);
       } else {
         return eva(alt, env);
+      }
+    } else if (x[0] === 'cond') {
+      _ref = x.slice(1);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        _ref2 = _ref[_i], test = _ref2[0], conseq = _ref2[1];
+        if (eva(test, env)) return eva(conseq, env);
       }
     } else if (x[0] === 'set!') {
       _ = x[0], key = x[1], exp = x[2];
@@ -120,10 +132,10 @@
     } else {
       exps = [
         (function() {
-          var _i, _len, _results;
+          var _j, _len2, _results;
           _results = [];
-          for (_i = 0, _len = x.length; _i < _len; _i++) {
-            exp = x[_i];
+          for (_j = 0, _len2 = x.length; _j < _len2; _j++) {
+            exp = x[_j];
             _results.push(eva(exp, env));
           }
           return _results;
@@ -141,7 +153,7 @@
   parse = read;
 
   tokenize = function(string) {
-    return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').replace(/\n/g, '').replace.split(" ").filter(function(s) {
+    return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').replace(/\n/g, '').split(" ").filter(function(s) {
       return s !== "";
     });
   };
@@ -182,9 +194,11 @@
 
   to_string = function(exp) {
     if (exp instanceof Array) {
-      return "( " + exp.map(to_string).join(" ") + " )";
-    } else if (typeof exp === 'undefined' || exp === null) {
-      return "null";
+      return "(" + exp.map(to_string).join(" ") + ")";
+    } else if (typeof exp === 'undefined') {
+      return '';
+    } else if (exp === null) {
+      return null;
     } else {
       return exp.toString();
     }
