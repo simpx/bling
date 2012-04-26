@@ -1,9 +1,18 @@
 Operations =
-    '+': (a, b) -> a + b
-    '-': (a, b) -> a - b
-    '*': (a, b) -> a * b
-    '/': (a, b) -> a / b
-    'car': (a) -> a[0]
+    '#t':   true
+    '#f':   false
+    '+':    (a, b) -> a + b
+    '-':    (a, b) -> a - b
+    '*':    (a, b) -> a * b
+    '/':    (a, b) -> a / b
+    '<':    (a, b) -> a < b
+    '>':    (a, b) -> a > b
+    '<=':   (a, b) -> a <= b
+    '>=':   (a, b) -> a >= b
+    '=':    (a, b) -> a == b
+    'atom': (a)    -> if a instanceof Array then [] else '#t'
+    'car':  (a)    -> a[0]
+    'cdr':  (a)    -> a.slice(1)
 
 Symbol = 'string'
 class Env
@@ -62,7 +71,7 @@ read = (s) ->
 parse = read
 
 tokenize = (string) ->
-    string.replace(/('?\()/g,' $1 ').replace(/\)/g,' ) ').split(" ").filter((s) -> s != "")
+    string.replace(/('?\()/g,' $1 ').replace(/\)/g,' ) ').replace(/\n/g, '').replace.split(" ").filter((s) -> s != "")
 
 read_from = (tokens) ->
     if tokens.length == 0

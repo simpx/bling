@@ -1,0 +1,36 @@
+(define lifemap '((0 0 0 0 0)
+                  (0 0 1 0 0)
+                  (0 1 0 1 0)
+                  (0 0 2 1 0)
+                  (0 0 0 0 0)))
+(define size 5)
+
+(define getlist
+  (lambda (x list)
+    (if (= x 1) (car list)
+        (getlist (- x 1) (cdr list)))))
+
+(define getmap
+  (lambda (x y map) 
+    (getlist x (getlist y map))))
+
+(define getmapx
+  (lambda (x y size map)
+    (cond ((<= x 0) (getmapx (+ x size) y size map))
+          ((<= y 0) (getmapx x (+ y size) size map))
+          (#t (getmap x y map)))))
+
+(define nearlifes
+  (lambda (x y size map)
+    (+ (getmapx    x    (- y 1) size map)
+       (getmapx    x    (+ y 1) size map)
+       (getmapx (- x 1) (- y 1) size map)
+       (getmapx (- x 1)    y    size map)
+       (getmapx (- x 1) (+ y 1) size map)
+       (getmapx (+ x 1) (- y 1) size map)
+       (getmapx (+ x 1)    y    size map)
+       (getmapx (+ x 1) (+ y 1) size map))))
+
+(define live?
+  (lambda (x y size map)
+    (if (>= (nearlifes x y size map) 3) #f #t)))

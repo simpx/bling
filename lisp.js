@@ -2,6 +2,8 @@
   var Env, Operations, Symbol, atom, eva, global_env, parse, read, read_from, to_string, tokenize;
 
   Operations = {
+    '#t': true,
+    '#f': false,
     '+': function(a, b) {
       return a + b;
     },
@@ -14,8 +16,33 @@
     '/': function(a, b) {
       return a / b;
     },
+    '<': function(a, b) {
+      return a < b;
+    },
+    '>': function(a, b) {
+      return a > b;
+    },
+    '<=': function(a, b) {
+      return a <= b;
+    },
+    '>=': function(a, b) {
+      return a >= b;
+    },
+    '=': function(a, b) {
+      return a === b;
+    },
+    'atom': function(a) {
+      if (a instanceof Array) {
+        return [];
+      } else {
+        return '#t';
+      }
+    },
     'car': function(a) {
       return a[0];
+    },
+    'cdr': function(a) {
+      return a.slice(1);
     }
   };
 
@@ -114,7 +141,7 @@
   parse = read;
 
   tokenize = function(string) {
-    return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').split(" ").filter(function(s) {
+    return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').replace(/\n/g, '').replace.split(" ").filter(function(s) {
       return s !== "";
     });
   };
