@@ -1,21 +1,54 @@
 (function() {
-  var Env, Operations, Symbol, atom, eva, global_env, parse, read, read_from, to_string, tokenize;
+  var Env, Operations, Symbol, a, atom, eva, global_env, multi_read, parse, read, read_from, to_string, tokenize;
 
   Operations = {
-    '+': function(a, b) {
-      return a + b;
+    '#t': true,
+    '#f': false,
+    '+': function(x, y) {
+      return x + y;
     },
-    '-': function(a, b) {
-      return a - b;
+    '-': function(x, y) {
+      return x - y;
     },
-    '*': function(a, b) {
-      return a * b;
+    '*': function(x, y) {
+      return x * y;
     },
-    '/': function(a, b) {
-      return a / b;
+    '/': function(x, y) {
+      return x / y;
     },
-    'car': function(a) {
-      return a[0];
+    '<': function(x, y) {
+      return x < y;
+    },
+    '>': function(x, y) {
+      return x > y;
+    },
+    '<=': function(x, y) {
+      return x <= y;
+    },
+    '>=': function(x, y) {
+      return x >= y;
+    },
+    '=': function(x, y) {
+      return x === y;
+    },
+    'atom': function(x) {
+      if (x instanceof Array && a.length > 0) {
+        return [];
+      } else {
+        return '#t';
+      }
+    },
+    'eq': function(x, y) {
+      return x === y;
+    },
+    'car': function(x) {
+      return x[0];
+    },
+    'cdr': function(x) {
+      return x.slice(1);
+    },
+    'cons': function(x, y) {
+      return [x].concat(y);
     }
   };
 
@@ -57,7 +90,7 @@
   global_env = new Env(Operations);
 
   eva = function(x, env) {
-    var alt, conseq, exp, exps, key, keys, proc, test, _;
+    var alt, conseq, exp, exps, key, keys, proc, test, _, _i, _len, _ref, _ref2;
     if (env == null) env = global_env;
     if (typeof x === Symbol) {
       return env.get(x);
@@ -72,6 +105,12 @@
         return eva(conseq, env);
       } else {
         return eva(alt, env);
+      }
+    } else if (x[0] === 'cond') {
+      _ref = x.slice(1);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        _ref2 = _ref[_i], test = _ref2[0], conseq = _ref2[1];
+        if (eva(test, env)) return eva(conseq, env);
       }
     } else if (x[0] === 'set!') {
       _ = x[0], key = x[1], exp = x[2];
@@ -93,10 +132,10 @@
     } else {
       exps = [
         (function() {
-          var _i, _len, _results;
+          var _j, _len2, _results;
           _results = [];
-          for (_i = 0, _len = x.length; _i < _len; _i++) {
-            exp = x[_i];
+          for (_j = 0, _len2 = x.length; _j < _len2; _j++) {
+            exp = x[_j];
             _results.push(eva(exp, env));
           }
           return _results;
@@ -108,15 +147,24 @@
   };
 
   read = function(s) {
-    return read_from(tokenize(s));
+    return multi_read(tokenize(s));
   };
 
   parse = read;
 
   tokenize = function(string) {
-    return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').split(" ").filter(function(s) {
+    return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').replace(/\n/g, '').split(" ").filter(function(s) {
       return s !== "";
     });
+  };
+
+  multi_read = function(tokens) {
+    var _results;
+    _results = [];
+    while (tokens.length > 0) {
+      _results.push(read_from(tokens));
+    }
+    return _results;
   };
 
   read_from = function(tokens) {
@@ -155,16 +203,32 @@
 
   to_string = function(exp) {
     if (exp instanceof Array) {
-      return "( " + exp.map(to_string).join(" ") + " )";
-    } else if (typeof exp === 'undefined' || exp === null) {
-      return "null";
+      return "(" + exp.map(to_string).join(" ") + ")";
+    } else if (typeof exp === 'undefined') {
+      return '';
+    } else if (exp === null) {
+      return null;
+    } else if (exp === true) {
+      return '#t';
+    } else if (exp === false) {
+      return '#f';
     } else {
       return exp.toString();
     }
   };
 
   window.repl = function(s) {
-    return to_string(eva(parse(s)));
+    var i, r, _i, _len, _ref;
+    _ref = parse(s);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      i = _ref[_i];
+      r = eva(i);
+    }
+    return to_string(r);
   };
+
+  a = " (define lifemap '((0 0 0 0 0)                         (0 0 1 0 0)                         (0 1 0 1 0)                         (0 0 2 1 0)                        (0 0 0 0 0)))(define size 5)(define getlist   (lambda (x list)     (if (= x 1) (car list)         (getlist (- x 1) (cdr list)))))(define getmap  (lambda (x y map)     (getlist x (getlist y map))))(define getmapx  (lambda (x y size map)    (cond ((<= x 0) (getmapx (+ x size) y size map))          ((<= y 0) (getmapx x (+ y size) size map))          (#t (getmap x y map)))))(define nearlifes  (lambda (x y size map)    (+ (getmapx    x    (- y 1) size map)       (getmapx    x    (+ y 1) size map)       (getmapx (- x 1) (- y 1) size map)       (getmapx (- x 1)    y    size map)       (getmapx (- x 1) (+ y 1) size map)       (getmapx (+ x 1) (- y 1) size map)       (getmapx (+ x 1)    y    size map)       (getmapx (+ x 1) (+ y 1) size map))))(define live?  (lambda (x y size map)    (if (>= (nearlifes x y size map) 3) #t #f)))";
+
+  repl(a);
 
 }).call(this);
