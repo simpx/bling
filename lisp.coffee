@@ -72,12 +72,16 @@ eva = (x, env=global_env) ->
         proc.apply(null, exps)
 
 read = (s) ->
-    read_from(tokenize(s))
+    multi_read(tokenize(s))
 
 parse = read
 
 tokenize = (string) ->
     string.replace(/('?\()/g,' $1 ').replace(/\)/g,' ) ').replace(/\n/g, '').split(" ").filter((s) -> s != "")
+
+multi_read = (tokens) ->
+    while tokens.length > 0
+        read_from(tokens)
 
 read_from = (tokens) ->
     if tokens.length == 0
@@ -110,8 +114,48 @@ to_string = (exp) ->
         ''
     else if exp == null
         null
+    else if exp is true
+        '#t'
+    else if exp is false
+        '#f'
     else
         exp.toString()
 
 window.repl = (s) ->
-    to_string(eva(parse(s)))
+    for i in parse(s)
+        r = eva(i)
+    to_string(r)
+
+a = " (define lifemap '((0 0 0 0 0) 
+                        (0 0 1 0 0) 
+                        (0 1 0 1 0) 
+                        (0 0 2 1 0)
+                        (0 0 0 0 0)))
+(define size 5)
+(define getlist 
+  (lambda (x list) 
+    (if (= x 1) (car list) 
+        (getlist (- x 1) (cdr list)))))
+(define getmap
+  (lambda (x y map) 
+    (getlist x (getlist y map))))
+(define getmapx
+  (lambda (x y size map)
+    (cond ((<= x 0) (getmapx (+ x size) y size map))
+          ((<= y 0) (getmapx x (+ y size) size map))
+          (#t (getmap x y map)))))
+(define nearlifes
+  (lambda (x y size map)
+    (+ (getmapx    x    (- y 1) size map)
+       (getmapx    x    (+ y 1) size map)
+       (getmapx (- x 1) (- y 1) size map)
+       (getmapx (- x 1)    y    size map)
+       (getmapx (- x 1) (+ y 1) size map)
+       (getmapx (+ x 1) (- y 1) size map)
+       (getmapx (+ x 1)    y    size map)
+       (getmapx (+ x 1) (+ y 1) size map))))
+(define live?
+  (lambda (x y size map)
+    (if (>= (nearlifes x y size map) 3) #t #f)))
+"
+repl(a)

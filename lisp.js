@@ -1,5 +1,5 @@
 (function() {
-  var Env, Operations, Symbol, atom, eva, global_env, parse, read, read_from, to_string, tokenize;
+  var Env, Operations, Symbol, a, atom, eva, global_env, multi_read, parse, read, read_from, to_string, tokenize;
 
   Operations = {
     '#t': true,
@@ -147,7 +147,7 @@
   };
 
   read = function(s) {
-    return read_from(tokenize(s));
+    return multi_read(tokenize(s));
   };
 
   parse = read;
@@ -156,6 +156,15 @@
     return string.replace(/('?\()/g, ' $1 ').replace(/\)/g, ' ) ').replace(/\n/g, '').split(" ").filter(function(s) {
       return s !== "";
     });
+  };
+
+  multi_read = function(tokens) {
+    var _results;
+    _results = [];
+    while (tokens.length > 0) {
+      _results.push(read_from(tokens));
+    }
+    return _results;
   };
 
   read_from = function(tokens) {
@@ -199,13 +208,27 @@
       return '';
     } else if (exp === null) {
       return null;
+    } else if (exp === true) {
+      return '#t';
+    } else if (exp === false) {
+      return '#f';
     } else {
       return exp.toString();
     }
   };
 
   window.repl = function(s) {
-    return to_string(eva(parse(s)));
+    var i, r, _i, _len, _ref;
+    _ref = parse(s);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      i = _ref[_i];
+      r = eva(i);
+    }
+    return to_string(r);
   };
+
+  a = " (define lifemap '((0 0 0 0 0)                         (0 0 1 0 0)                         (0 1 0 1 0)                         (0 0 2 1 0)                        (0 0 0 0 0)))(define size 5)(define getlist   (lambda (x list)     (if (= x 1) (car list)         (getlist (- x 1) (cdr list)))))(define getmap  (lambda (x y map)     (getlist x (getlist y map))))(define getmapx  (lambda (x y size map)    (cond ((<= x 0) (getmapx (+ x size) y size map))          ((<= y 0) (getmapx x (+ y size) size map))          (#t (getmap x y map)))))(define nearlifes  (lambda (x y size map)    (+ (getmapx    x    (- y 1) size map)       (getmapx    x    (+ y 1) size map)       (getmapx (- x 1) (- y 1) size map)       (getmapx (- x 1)    y    size map)       (getmapx (- x 1) (+ y 1) size map)       (getmapx (+ x 1) (- y 1) size map)       (getmapx (+ x 1)    y    size map)       (getmapx (+ x 1) (+ y 1) size map))))(define live?  (lambda (x y size map)    (if (>= (nearlifes x y size map) 3) #t #f)))";
+
+  repl(a);
 
 }).call(this);

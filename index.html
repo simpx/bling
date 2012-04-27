@@ -69,21 +69,30 @@
 >>> (lambda (x) (* x 2))\n\
 >>> (define double (lambda (x) (* x 2)))\n"
         var jqconsole = $('#console').jqconsole(welcome, '>>> ');
-        var startPrompt = function () {
-          // Start the prompt with history enabled.
-          jqconsole.Prompt(true, function (input) {
-            // Output input with the class jqconsole-output.
-
+        jqconsole.RegisterShortcut('C', function() {
+          jqconsole.AbortPrompt();
+          handler();
+        })
+        var handler = function (command) {
+          if (command) {
             try {
-            jqconsole.Write(repl(input) + '\n', 'jqconsole-output');
+              jqconsole.Write(repl(command) + '\n', 'jqconsole-output');
             } catch (e){
-            jqconsole.Write('ERROR: ' + e + '\n');
+              jqconsole.Write('ERROR: ' + e + '\n');
+            }
+            parens = 0;
           }
-            // Restart the prompt.
-            startPrompt();
+          jqconsole.Prompt(true, handler, function(input){
+            if(/\n\s*$/.test(input))
+              return false
+            else{
+              left_parens = input.replace(/[^(]/g, '').length
+              right_parens = input.replace(/[^)]/g, '').length
+              return right_parens != left_parens
+            }
           });
         };
-        startPrompt();
+        handler();
       });
     </script>
 <div id="console"></div>
