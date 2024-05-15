@@ -49,6 +49,9 @@
     },
     'cons': function(x, y) {
       return [x].concat(y);
+    },
+    'list': function() {
+      return Array.prototype.slice.call(arguments);
     }
   };
 
